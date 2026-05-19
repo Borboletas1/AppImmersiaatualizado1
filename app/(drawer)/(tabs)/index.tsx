@@ -13,9 +13,173 @@ import {
   Animated,
   ImageBackground,
   Pressable,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { useNavigation } from '@react-navigation/native';
+import { WebView } from 'react-native-webview';
+import * as Location from 'expo-location'; 
+import { Linking } from 'react-native'; // Adicione no topo com os outros imports
+import { Modal, TextInput, SectionList } from "react-native";
+import * as WebBrowser from 'expo-web-browser'; 
 
+// TODAS AS CIDADES DO BRASIL POR ESTADO
+// COMPONENTE DE MAPA COM BUSCA POR QUALQUER CIDADE
+const CityMapComponent = () => {
+  const [searchText, setSearchText] = useState('');
+  const [selectedCity, setSelectedCity] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const searchAnyCity = async () => {
+    if (!searchText.trim()) {
+      Alert.alert('Atenção', 'Digite o nome de uma cidade');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Busca a cidade no Google Maps para obter coordenadas
+      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchText)}`;
+      await WebBrowser.openBrowserAsync(url);
+      setSelectedCity(searchText);
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível abrir o mapa');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const searchByCategory = async (category) => {
+    if (!selectedCity && !searchText) {
+      Alert.alert('Atenção', 'Primeiro digite uma cidade');
+      return;
+    }
+    const cityName = selectedCity || searchText;
+    const url = `https://www.google.com/maps/search/?api=1&query=${category.search}+em+${encodeURIComponent(cityName)}`;
+    await WebBrowser.openBrowserAsync(url);
+  };
+
+  const searchCustom = async () => {
+    if (!selectedCity && !searchText) {
+      Alert.alert('Atenção', 'Digite uma cidade');
+      return;
+    }
+    const cityName = selectedCity || searchText;
+    const url = `https://www.google.com/maps/search/?api=1&query=lugares+em+${encodeURIComponent(cityName)}`;
+    await WebBrowser.openBrowserAsync(url);
+  };
+
+  return (
+    <View style={styles.mapCardNew}>
+      <Text style={styles.icon}>🗺️</Text>
+      <Text style={styles.cardTitle}>
+        Digite o nome da cidade
+      </Text>
+
+      {/* Campo de busca */}
+      <View style={styles.searchContainerNew}>
+        <Text style={styles.searchIcon}></Text>
+        <TextInput
+          style={styles.searchInputNew}
+          placeholder="Ex: Rio de Janeiro, Salvador, Gramado..."
+          placeholderTextColor="#999"
+          value={searchText}
+          onChangeText={setSearchText}
+          onSubmitEditing={searchAnyCity}
+          returnKeyType="search"
+        />
+        <TouchableOpacity onPress={() => setSearchText('')}>
+          <Text style={styles.clearIcon}>✕</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Botão de buscar */}
+      <TouchableOpacity style={styles.searchButton} onPress={searchAnyCity} disabled={loading}>
+        <Text style={styles.searchButtonText}>
+          {loading ? 'Buscando...' : ' Buscar cidade'}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Cidade selecionada */}
+      {selectedCity && (
+        <View style={styles.selectedCityBox}>
+          <Text style={styles.selectedCityText}> Cidade selecionada: {selectedCity}</Text>
+        </View>
+      )}
+
+      {/* Categorias (só aparece se tiver uma cidade selecionada ou digitada) */}
+      {(selectedCity || searchText) && (
+        <View style={styles.categoriesContainer}>
+          <Text style={styles.categoriesTitle}>
+            O que você quer fazer em {selectedCity || searchText}?
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScroll}>
+            <TouchableOpacity style={styles.categoryChip} onPress={() => searchByCategory({ search: 'restaurantes' })}>
+              <Text style={styles.categoryChipText}>Restaurantes</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.categoryChip} onPress={() => searchByCategory({ search: 'hoteis' })}>
+              <Text style={styles.categoryChipText}>Hotéis</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.categoryChip} onPress={() => searchByCategory({ search: 'praias' })}>
+              <Text style={styles.categoryChipText}> Praias</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.categoryChip} onPress={() => searchByCategory({ search: 'parques' })}>
+              <Text style={styles.categoryChipText}> Parques</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.categoryChip} onPress={() => searchByCategory({ search: 'museus' })}>
+              <Text style={styles.categoryChipText}>Museus</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.categoryChip} onPress={() => searchByCategory({ search: 'shoppings' })}>
+              <Text style={styles.categoryChipText}> Shoppings</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.categoryChip} onPress={() => searchByCategory({ search: 'bares' })}>
+              <Text style={styles.categoryChipText}> Bares</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.categoryChip} onPress={() => searchByCategory({ search: 'pontos+turisticos' })}>
+              <Text style={styles.categoryChipText}>Pontos Turísticos</Text>
+            </TouchableOpacity>
+          </ScrollView>
+          
+          <TouchableOpacity style={styles.customSearchButton} onPress={searchCustom}>
+            <Text style={styles.customSearchButtonText}>Ver tudo em {selectedCity || searchText}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Sugestões rápidas */}
+      <View style={styles.suggestionsContainer}>
+        <Text style={styles.suggestionsTitle}> Sugestões:</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <TouchableOpacity style={styles.suggestionChip} onPress={() => { setSearchText('Rio de Janeiro'); searchAnyCity(); }}>
+            <Text style={styles.suggestionChipText}>Rio de Janeiro</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.suggestionChip} onPress={() => { setSearchText('São Paulo'); searchAnyCity(); }}>
+            <Text style={styles.suggestionChipText}>São Paulo</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.suggestionChip} onPress={() => { setSearchText('Salvador'); searchAnyCity(); }}>
+            <Text style={styles.suggestionChipText}>Salvador</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.suggestionChip} onPress={() => { setSearchText('Gramado'); searchAnyCity(); }}>
+            <Text style={styles.suggestionChipText}>Gramado</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.suggestionChip} onPress={() => { setSearchText('Florianópolis'); searchAnyCity(); }}>
+            <Text style={styles.suggestionChipText}>Florianópolis</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.suggestionChip} onPress={() => { setSearchText('Fortaleza'); searchAnyCity(); }}>
+            <Text style={styles.suggestionChipText}>Fortaleza</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.suggestionChip} onPress={() => { setSearchText('Recife'); searchAnyCity(); }}>
+            <Text style={styles.suggestionChipText}>Recife</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.suggestionChip} onPress={() => { setSearchText('Belo Horizonte'); searchAnyCity(); }}>
+            <Text style={styles.suggestionChipText}>Belo Horizonte</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+    </View>
+  );
+};
 const { width } = Dimensions.get("window");
 
 const logoImage = require("../../../assets/images/logo.png");
@@ -283,8 +447,8 @@ const PacoteCarousel = () => {
   const flatListRef = useRef(null);
   const timerRef = useRef(null);
 
-  const cardWidth = width * 0.8;
-  const cardMargin = 10;
+  const cardWidth = width * 0.9;
+  const cardMargin = 20;
   const snapInterval = cardWidth + cardMargin;
   const offset = (width - cardWidth) / 2;
 
@@ -422,7 +586,11 @@ function Card({ titulo, imagem, style, onPress }) {
 }
 
 // 🔥 APP
+// 🔥 APP
 export default function App() {
+  // A chamada do hook deve estar AQUI dentro
+  const navigation = useNavigation();
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
@@ -432,7 +600,7 @@ export default function App() {
         <BannerCarousel />
 
         <View style={styles.contentContainer}>
-          {/* 4. SEÇÃO "CONHEÇA O QUE OFERECEMOS" (LOGA ABAIXO) */}
+          {/* 4. SEÇÃO "CONHEÇA O QUE OFERECEMOS" */}
           <View style={[styles.textContainer, { marginTop: 150 }]}>
             <Text style={styles.h3}>Conheça o que oferecemos:</Text>
             <View style={styles.underline} />
@@ -442,33 +610,33 @@ export default function App() {
             <Card
               titulo="EXPERIÊNCIA"
               imagem={require("../../../assets/images/exp.jpg")}
+              // Agora o navigation existe neste escopo
+              onPress={() => navigation.navigate('experiencias')} 
             />
             <Card
               titulo="HOSPEDAGENS"
               imagem={require("../../../assets/images/hosp.webp")}
+              onPress={() => navigation.navigate('hospedagens')}
             />
             <Card
               titulo="PACOTES"
               imagem={require("../../../assets/images/pacotes.jpg")}
+              onPress={() => navigation.navigate('pacotes')}
             />
           </View>
-
-          {/* 5. Mapa / Localização (Final) */}
-          <View style={[styles.textContainer, { marginTop: 40 }]}>
-            <Text style={styles.h3}>Experiências próximas de você</Text>
+ <View style={[styles.textContainer, { marginTop: 20}]}>
+            <Text style={styles.h3}>Experiências próximas de você:</Text>
             <View style={styles.underline} />
           </View>
 
-          <Card
-            imagem={require("../../../assets/images/brasil.jpg")}
-            style={styles.mapa}
-          />
-          {/* 3. Seção de Promoções (O carrossel marrom) */}
+<CityMapComponent />
+
+
           <View style={[styles.textContainer, { marginTop: 20 }]}>
             <Text style={styles.h3}>Promoções da semana</Text>
             <View style={styles.underline} />
           </View>
-          {/* Espaço para não cortar o final no scroll */}
+          
           <View style={{ height: 10 }} />
           <PacoteCarousel />
         </View>
@@ -519,7 +687,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   bannerContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 0,
   },
 
   bannerTitle: {
@@ -739,4 +907,368 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 11, // Reduzido de 14
   },
+  mapContainer: {
+  width: '100%',
+  height: 400,
+  backgroundColor: '#FFF',
+  borderRadius: 20,
+  overflow: 'hidden',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+  marginVertical: 10,
+},
+mapHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: 12,
+  backgroundColor: '#584128',
+},
+mapTitle: {
+  color: '#FFF',
+  fontSize: 14,
+  fontWeight: 'bold',
+},
+refreshButton: {
+  backgroundColor: '#EDEAE0',
+  paddingHorizontal: 12,
+  paddingVertical: 6,
+  borderRadius: 15,
+},
+refreshButtonText: {
+  color: '#584128',
+  fontSize: 12,
+  fontWeight: 'bold',
+},
+webview: {
+  flex: 1,
+  width: '100%',
+},
+loadingOverlay: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: 'rgba(255,255,255,0.9)',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+mapFooter: {
+  padding: 8,
+  backgroundColor: '#F5F5DC',
+  alignItems: 'center',
+},
+mapFooterText: {
+  fontSize: 11,
+  color: '#584128',
+},
+centerContent: {
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+// Adicione dentro do StyleSheet
+locationIcon: {
+  fontSize: 48,
+  marginBottom: 10,
+},
+locationTitle: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  color: '#584128',
+  marginBottom: 5,
+},
+locationCard: {
+  backgroundColor: '#FFF',
+  borderRadius: 20,
+  padding: 20,
+  alignItems: 'center',
+  justifyContent: 'center',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+  width: '100%',
+  minHeight: 200,
+},
+locationSubtitle: {
+  fontSize: 14,
+  color: '#666',
+  textAlign: 'center',
+  marginTop: 10,
+},
+footerButton: {
+  padding: 8,
+  alignItems: 'center',
+},
+// NOVOS ESTILOS DO MAPA COM CIDADES - ADICIONE AO FINAL DO StyleSheet
+
+  // Estilos do novo componente CityMapComponent
+  mapCardNew: {
+    backgroundColor: "#FFF",
+    borderRadius: 20,
+    padding: 25,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    marginHorizontal: 15,
+    marginVertical: 10,
+    width: "90%",
+  },
+  icon: {
+    fontSize: 60,
+    marginBottom: 15,
+  },
+  cardTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#584128",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  cardText: {
+    fontSize: 14,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  selectCityButton: {
+    backgroundColor: "#584128",
+    paddingHorizontal: 25,
+    paddingVertical: 14,
+    borderRadius: 25,
+    width: "100%",
+    alignItems: "center",
+  },
+  selectCityButtonText: {
+    color: "#FFF",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  categoriesContainer: {
+    marginTop: 20,
+    width: "100%",
+  },
+  categoriesTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  categoriesScroll: {
+    flexDirection: "row",
+    marginBottom: 12,
+  },
+  categoryChip: {
+    backgroundColor: "#F0F0F0",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 25,
+    marginRight: 10,
+  },
+  categoryChipText: {
+    fontSize: 14,
+    color: "#333",
+  },
+  customSearchButton: {
+    backgroundColor: "#E8E8E8",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 25,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  customSearchButtonText: {
+    fontSize: 14,
+    color: "#584128",
+    fontWeight: "bold",
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+    padding: 20,
+    maxHeight: "90%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  modalClose: {
+    fontSize: 24,
+    color: "#999",
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    marginBottom: 20,
+  },
+  searchIcon: {
+    fontSize: 16,
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 16,
+  },
+  clearIcon: {
+    fontSize: 18,
+    color: "#999",
+    padding: 5,
+  },
+  sectionHeader: {
+    backgroundColor: "#FFF",
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  sectionHeaderText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#612205",
+  },
+  cityItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  cityItemIcon: {
+    fontSize: 20,
+    marginRight: 12,
+  },
+  cityItemInfo: {
+    flex: 1,
+  },
+  cityItemName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  cityItemState: {
+    fontSize: 12,
+    color: "#999",
+  },
+  cityItemArrow: {
+    fontSize: 18,
+    color: "#584128",
+  },
+  emptyContainer: {
+    padding: 40,
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#999",
+  },
+  tipCard: {
+    margin: 15,
+    marginTop: 5,
+    marginBottom: 30,
+    padding: 20,
+    backgroundColor: "#FFF",
+    borderRadius: 15,
+    borderLeftWidth: 4,
+    borderLeftColor: "#FF6B6B",
+  },
+  tipTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#584128",
+    marginBottom: 10,
+  },
+  tipText: {
+    fontSize: 13,
+    color: "#666",
+    lineHeight: 22,
+  },
+  // Novos estilos para busca de cidade
+searchContainerNew: {
+  flexDirection: "row",
+  alignItems: "center",
+  backgroundColor: "#F5F5F5",
+  borderRadius: 12,
+  paddingHorizontal: 12,
+  marginBottom: 15,
+  width: "100%",
+},
+searchInputNew: {
+  flex: 1,
+  paddingVertical: 12,
+  fontSize: 16,
+},
+searchButton: {
+  backgroundColor: "#584128",
+  paddingHorizontal: 25,
+  paddingVertical: 12,
+  borderRadius: 25,
+  width: "100%",
+  alignItems: "center",
+  marginBottom: 15,
+},
+searchButtonText: {
+  color: "#FFF",
+  fontWeight: "bold",
+  fontSize: 16,
+},
+selectedCityBox: {
+  backgroundColor: "#E8F5E9",
+  padding: 10,
+  borderRadius: 10,
+  marginBottom: 15,
+  width: "100%",
+},
+selectedCityText: {
+  fontSize: 14,
+  color: "#2E7D32",
+  textAlign: "center",
+  fontWeight: "bold",
+},
+suggestionsContainer: {
+  marginTop: 15,
+  width: "100%",
+},
+suggestionsTitle: {
+  fontSize: 14,
+  fontWeight: "bold",
+  color: "#666",
+  marginBottom: 10,
+},
+suggestionChip: {
+  backgroundColor: "#E8E8E8",
+  paddingHorizontal: 15,
+  paddingVertical: 8,
+  borderRadius: 20,
+  marginRight: 8,
+},
+suggestionChipText: {
+  fontSize: 13,
+  color: "#333",
+},
 });

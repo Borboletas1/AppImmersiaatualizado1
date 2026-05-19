@@ -131,6 +131,38 @@ export default function DrawerLayout() {
           ),
         }} 
       />
+           <Drawer.Screen 
+        name="exemploproduto"
+        options={{ 
+          title: "",
+          drawerLabel: "",
+  
+        }} 
+      />
+       <Drawer.Screen 
+        name="login"
+        options={{ 
+          title: "",
+          drawerLabel: "",
+  
+        }} 
+      />
+       <Drawer.Screen 
+        name="exemploblog"
+        options={{ 
+          title: "",
+          drawerLabel: "",
+  
+        }} 
+      />
+       <Drawer.Screen 
+        name="perfil_anfitriao"
+        options={{ 
+          title: "",
+          drawerLabel: "",
+  
+        }} 
+      />
     </Drawer>
   );
 }

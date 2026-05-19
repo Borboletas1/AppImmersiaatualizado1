@@ -17,7 +17,7 @@ import { StatusBar } from "expo-status-bar";
 import { Link, router } from "expo-router";
 
 const { width } = Dimensions.get("window");
-const logoImage = require("../assets/images/logo.png");
+const logoImage = require("../../assets/images/logo.png");
 
 export default function Login() {
   const [email, setEmail] = useState("");

@@ -3,26 +3,28 @@ import { useRouter } from 'expo-router';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useState } from 'react';
 
-export default function PerfilScreen() {
+export default function PerfilAnfitriaoScreen() {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Simulando usuário logado
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
-  // Dados do usuário (simulados)
-  const userData = {
-    nome: "João Silva",
-    email: "joao.silva@email.com",
-    telefone: "(11) 99999-9999",
-    cpf: "123.456.789-00",
-    dataNascimento: "15/05/1990",
-    membroDesde: "Janeiro 2024",
+  // Dados do anfitrião (simulados)
+  const hostData = {
+    nome: "Maria Oliveira",
+    email: "maria.oliveira@email.com",
+    telefone: "(11) 98888-8888",
+    cpf: "987.654.321-00",
+    dataNascimento: "20/08/1988",
+    membroDesde: "Março 2023",
+    tipoUsuario: "Anfitrião",
+    totalPropriedades: 5
   };
 
-  const menuItems = [
-    { icon: "heart-outline", title: "Meus Favoritos", route: "/favoritos", color: "#FF6B6B" },
-    { icon: "calendar-outline", title: "Minhas Reservas", route: "/reservas", color: "#4ECDC4" },
-    { icon: "card-outline", title: "Formas de Pagamento", route: "/pagamento", color: "#45B7D1" },
-    { icon: "location-outline", title: "Endereços", route: "/enderecos", color: "#96CEB4" },
-    { icon: "chatbubble-outline", title: "Suporte", route: "/contato", color: "#FFEAA7" },
+  const menuItems = [,
+    { icon: "home-outline", title: "Gerenciar Produtos", route: "/minhas-experiencias", color: "#584128" },
+    { icon: "calendar-outline", title: "Ver Reservas", route: "/reservas", color: "#4ECDC4" },
+    { icon: "person-outline", title: "Editar Perfil", route: "/configuracoes-anfitriao", color: "#96CEB4" },
+    { icon: "stats-chart-outline", title: "Dashboard", route: "/dashboard", color: "#45B7D1" },
+    { icon: "chatbubble-outline", title: "Mensagens Clientes", route: "/mensagens", color: "#FFEAA7" },
     { icon: "document-text-outline", title: "Termos e Privacidade", route: "/termos", color: "#DDA0DD" },
   ];
 
@@ -48,43 +50,49 @@ export default function PerfilScreen() {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+<TouchableOpacity onPress={() => router.replace('/')} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#584128" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Meu Perfil</Text>
+        <Text style={styles.headerTitle}>Perfil do Anfitrião</Text>
         <TouchableOpacity onPress={() => router.push("/editar-perfil")} style={styles.editButton}>
           <Feather name="edit-2" size={20} color="#584128" />
         </TouchableOpacity>
       </View>
 
-      {/* Informações do Usuário */}
+      {/* Informações do Anfitrião */}
       <View style={styles.profileCard}>
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{userData.nome.charAt(0)}</Text>
+            <Text style={styles.avatarText}>{hostData.nome.charAt(0)}</Text>
           </View>
           <TouchableOpacity style={styles.changePhotoButton}>
             <Feather name="camera" size={16} color="#fff" />
           </TouchableOpacity>
         </View>
         
-        <Text style={styles.userName}>{userData.nome}</Text>
-        <Text style={styles.userEmail}>{userData.email}</Text>
+        <Text style={styles.userName}>{hostData.nome}</Text>
+        <Text style={styles.userEmail}>{hostData.email}</Text>
         
+        <View style={styles.badgeContainer}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>🏠 {hostData.tipoUsuario}</Text>
+          </View>
+        </View>
+
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>12</Text>
+            <Text style={styles.statNumber}>{hostData.totalPropriedades}</Text>
+            <Text style={styles.statLabel}>Propriedades</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>28</Text>
             <Text style={styles.statLabel}>Reservas</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>8</Text>
-            <Text style={styles.statLabel}>Favoritos</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>3</Text>
-            <Text style={styles.statLabel}>Avaliações</Text>
+            <Text style={styles.statNumber}>4.8</Text>
+            <Text style={styles.statLabel}>Avaliação</Text>
           </View>
         </View>
       </View>
@@ -97,7 +105,7 @@ export default function PerfilScreen() {
           <Ionicons name="call-outline" size={20} color="#584128" />
           <View style={styles.infoContent}>
             <Text style={styles.infoLabel}>Telefone</Text>
-            <Text style={styles.infoValue}>{userData.telefone}</Text>
+            <Text style={styles.infoValue}>{hostData.telefone}</Text>
           </View>
         </View>
 
@@ -105,7 +113,7 @@ export default function PerfilScreen() {
           <Ionicons name="calendar-outline" size={20} color="#584128" />
           <View style={styles.infoContent}>
             <Text style={styles.infoLabel}>Data de Nascimento</Text>
-            <Text style={styles.infoValue}>{userData.dataNascimento}</Text>
+            <Text style={styles.infoValue}>{hostData.dataNascimento}</Text>
           </View>
         </View>
 
@@ -113,14 +121,14 @@ export default function PerfilScreen() {
           <Ionicons name="time-outline" size={20} color="#584128" />
           <View style={styles.infoContent}>
             <Text style={styles.infoLabel}>Membro desde</Text>
-            <Text style={styles.infoValue}>{userData.membroDesde}</Text>
+            <Text style={styles.infoValue}>{hostData.membroDesde}</Text>
           </View>
         </View>
       </View>
 
-      {/* Menu de Opções */}
+      {/* Menu do Anfitrião */}
       <View style={styles.menuSection}>
-        <Text style={styles.sectionTitle}>Opções</Text>
+        <Text style={styles.sectionTitle}>Gerenciamento do Anfitrião</Text>
         
         {menuItems.map((item, index) => (
           <TouchableOpacity
@@ -159,8 +167,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 15,
-    paddingBottom: 15,
+    paddingTop: 50,
+    paddingBottom: 20,
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
@@ -227,7 +235,21 @@ const styles = StyleSheet.create({
   userEmail: {
     fontSize: 14,
     color: '#666',
+    marginBottom: 12,
+  },
+  badgeContainer: {
     marginBottom: 20,
+  },
+  badge: {
+    backgroundColor: '#584128',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  badgeText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   statsContainer: {
     flexDirection: 'row',

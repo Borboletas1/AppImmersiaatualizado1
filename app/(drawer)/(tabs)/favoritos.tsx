@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 
 // Dados de exemplo para favoritos
 const favoritosIniciais = [
@@ -62,6 +63,7 @@ const favoritosIniciais = [
 ];
 
 export default function FavoritosScreen() {
+  const router = useRouter();
   const [favoritos, setFavoritos] = useState(favoritosIniciais);
 
   const removerFavorito = (id) => {
@@ -82,6 +84,26 @@ export default function FavoritosScreen() {
       ]
     );
   };
+
+  // HEADER FIXO
+  const HeaderFixo = () => (
+    <View style={styles.headerContainer}>
+      <TouchableOpacity onPress={() => router.push('/')} style={styles.backButton}>
+        <Ionicons name="arrow-back" size={24} color="#6e3821ff" />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>Favoritos</Text>
+      <View style={styles.headerRight} />
+    </View>
+  );
+
+  // SUBTITLE (parte que rola)
+  const Subtitle = () => (
+    <View style={styles.subtitleContainer}>
+      <Text style={styles.headerSubtitle}>
+        {favoritos.length} {favoritos.length === 1 ? 'item salvo' : 'itens salvos'}
+      </Text>
+    </View>
+  );
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
@@ -139,13 +161,10 @@ export default function FavoritosScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Meus Favoritos</Text>
-        <Text style={styles.headerSubtitle}>
-          {favoritos.length} {favoritos.length === 1 ? 'item salvo' : 'itens salvos'}
-        </Text>
-      </View>
+      {/* Header fixo fora da FlatList */}
+      <HeaderFixo />
       
+      {/* FlatList com o resto do conteúdo */}
       <FlatList
         data={favoritos}
         renderItem={renderItem}
@@ -153,6 +172,8 @@ export default function FavoritosScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={renderEmpty}
+        ListHeaderComponent={Subtitle}
+        stickyHeaderIndices={[0]} // Não vai funcionar porque o header está fora
       />
     </SafeAreaView>
   );
@@ -164,28 +185,51 @@ const styles = StyleSheet.create({
     backgroundColor: '#EDEAE0',
   },
   
-  header: {
-    padding: 20,
-    paddingTop: 10,
-    backgroundColor: '#EDEAE0',
+  // HEADER FIXO - Fora da FlatList
+  headerContainer: {
+    height: 70,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#E0DCD0',
+    borderBottomColor: '#e0e0e0',
+    zIndex: 1,
+  },
+  
+  backButton: {
+    padding: 8,
   },
   
   headerTitle: {
-    fontSize: 28,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#584128',
+    color: '#6e3821ff',
+  },
+  
+  headerRight: {
+    width: 40,
+  },
+  
+  // SUBTITLE (rolável)
+  subtitleContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: '#EDEAE0',
+    marginBottom: 5,
   },
   
   headerSubtitle: {
     fontSize: 14,
     color: '#C5A87B',
-    marginTop: 4,
+    textAlign: 'center',
   },
   
+  // LISTA
   listContainer: {
     padding: 16,
+    paddingTop: 0,
     flexGrow: 1,
   },
   
